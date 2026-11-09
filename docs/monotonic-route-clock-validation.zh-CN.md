@@ -42,6 +42,26 @@ Linux/Android 使用 CLOCK_BOOTTIME；macOS/iOS 使用 Darwin CLOCK_MONOTONIC；
 
 更新步骤见 [维护说明](monotonic-route-clock.md#updating-from-upstream)。建议新建升级分支后 rebase 或 merge upstream，解决源码迁移冲突后再运行同一组回归。新版官方已将文件迁到 easytier-core，需要将本地计时元数据和时钟注入一起迁移。
 
-GitHub Actions 工作流单独放在本地 `ci/monotonic-route-clock-validation` 分支：基于修复分支追加一个 workflow 提交，等待用户补齐 workflow 权限后再推送。修复分支仅包含源码、测试与文档；此前含 workflow 的提交 `622051ce` 已重新整理。云端三平台验证尚待执行。
+GitHub Actions 工作流独立放在已推送的 `ci/monotonic-route-clock-validation` 分支：基于修复分支追加一个 CI 提交。已有 Git 凭据管理器成功完成 workflow 推送，本轮未读取或修改令牌文件。修复分支仅包含源码、测试与文档；此前含 workflow 的提交 `622051ce` 已重新整理。当前 CI 范围与平台验收见文末更新。
 
 源码提交前检查新增文件清单、暂存差异及密钥模式；不包含本机网络配置、密码、私钥、令牌、构建日志或二进制。
+
+## CI 投入边界与分平台验收（2026-11-09 更新）
+
+修复分支固定为 `e7b47470a088eaaf11f9b484f69919b11ae911c5`，实现提交为 `54d3637ea3b2c1061db308d32dd7fc4205ac1fb8`。本节及 workflow 收敛仅在 ci/monotonic-route-clock-validation 分支维护。
+
+- 远程矩阵仅保留 Linux、macOS；每个任务最多 15 分钟。
+- 仅运行 easytier crate 的 peers::cache_clock::tests 与 peers::peer_ospf_route::clock_tests。
+- Windows 已完成本地 50 项测试；移除远程 Windows 任务和兼容库下载准备。
+- 配置收敛采用 [skip ci] 提交消息，复用已启动的验证结果，避免再次启动整个矩阵。
+- 外部下载/504 问题后续最多再重试一次；仍失败则记录未验证并停止，继续调整 workflow 需用户新指示。
+
+|平台|本次已验证|尚未验证|
+|---|---|---|
+|Windows|本地新增 8 项及既有 OSPF 42 项均通过|远程任务因上游下载 504 失败，已从矩阵移除|
+|Linux|云端新增路由、原生 CLOCK_BOOTTIME 测试及既有 OSPF 回归通过|实际物理挂起/唤醒场景未实测；两小时挂起使用注入时钟覆盖|
+|macOS|云端新增路由测试已通过|原生 CLOCK_MONOTONIC 测试当前运行中，完成前按未验证记录|
+
+Linux 通过记录：https://github.com/yisqiu/EasyTier/actions/runs/42582033922/job/129042815872 。
+macOS 当前记录：https://github.com/yisqiu/EasyTier/actions/runs/42581881525/job/129042313023 。
+跨平台结果对应的修复源码与冻结修复分支一致；CI-only 调整不包含源码变化。上述记录保留“已通过”与“尚未验证”的区别，不以任务启动或交叉编译代替运行验收。

@@ -1,0 +1,45 @@
+name: Monotonic route clock
+
+on:
+  push:
+    branches: [ci/monotonic-route-clock-validation]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  route-clock:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/prepare-build
+        if: runner.os != 'macOS'
+        with:
+          gui: false
+          pnpm: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prepare macOS build tools
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p easytier-gui/dist
+          if ! command -v protoc >/dev/null 2>&1; then
+            brew install protobuf
+          fi
+          protoc --version
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        if: runner.os == 'macOS'
+        with:
+          toolchain: '1.95'
+          cache: false
+          rustflags: ''
+      - uses: Swatinem/rust-cache@v2
+      - name: Route clock regressions
+        run: cargo test --locked -p easytier --lib peers::peer_ospf_route::clock_tests -- --test-threads=1
+      - name: Native suspend-aware clock
+        run: cargo test --locked -p easytier --lib peers::cache_clock::tests

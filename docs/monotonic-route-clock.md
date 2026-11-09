@@ -64,7 +64,8 @@ cargo test --locked -p easytier --lib peers::peer_ospf_route::tests -- --test-th
 
 The dedicated GitHub Actions workflow is kept separately on
 `ci/monotonic-route-clock-validation`, based on this fix branch. It is ready for
-Linux, Windows and macOS once workflow-scoped authentication is available. Local Windows native-clock tests can also be compiled independently;
+Linux and macOS native-clock checks. Windows uses the completed local 50-test
+verification; the remote Windows job and repeated full OSPF suite are omitted. Local Windows native-clock tests can also be compiled independently;
 the full existing Windows crate requires the upstream native build prerequisites.
 Tests inject time; they never set the host's clock or touch production configs.
 
