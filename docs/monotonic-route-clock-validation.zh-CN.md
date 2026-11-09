@@ -60,8 +60,9 @@ GitHub Actions 工作流独立放在已推送的 `ci/monotonic-route-clock-valid
 |---|---|---|
 |Windows|本地新增 8 项及既有 OSPF 42 项均通过|远程任务因上游下载 504 失败，已从矩阵移除|
 |Linux|云端新增路由、原生 CLOCK_BOOTTIME 测试及既有 OSPF 回归通过|实际物理挂起/唤醒场景未实测；两小时挂起使用注入时钟覆盖|
-|macOS|云端新增路由测试已通过|原生 CLOCK_MONOTONIC 测试当前运行中，完成前按未验证记录|
+|macOS|云端通过：新增路由测试及原生 CLOCK_MONOTONIC 测试（Native suspend-aware clock）均通过；run ID 42582033922|实际物理挂起/唤醒场景未实测；两小时挂起使用注入时钟覆盖|
 
 Linux 通过记录：https://github.com/yisqiu/EasyTier/actions/runs/42582033922/job/129042815872 。
-macOS 当前记录：https://github.com/yisqiu/EasyTier/actions/runs/42581881525/job/129042313023 。
+macOS 通过记录：https://github.com/yisqiu/EasyTier/actions/runs/42582033922/job/129042816145 。
 跨平台结果对应的修复源码与冻结修复分支一致；CI-only 调整不包含源码变化。上述记录保留“已通过”与“尚未验证”的区别，不以任务启动或交叉编译代替运行验收。
+API 复核：run ID 42582033922（执行提交 9c57ac88）中 ubuntu-latest、macos-latest 的 job 及 Native suspend-aware clock 步骤结论均为 success。windows-latest 失败于 prepare-build 的上游兼容库下载 504；Windows 验收沿用本地 50 项通过结果。
